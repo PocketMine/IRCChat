@@ -4,7 +4,7 @@
 __PocketMine Plugin__
 name=IRCChat
 description=Connects to an IRC channel to act as a bridge for the server chat.
-version=0.1
+version=0.2
 author=shoghicp
 class=IRCChat
 apiversion=6
@@ -17,6 +17,9 @@ Small Changelog
 
 0.1:
 - PocketMine-MP Alpha_1.3dev release
+
+0.2:
+- Added the IRC pass sub-command to run commands as the real Console.
 
 */
 
@@ -34,6 +37,7 @@ class IRCChat implements Plugin{
 			"nickname" => "YourNicknameHere",
 			"password" => "",
 			"channel" => "#example,#example2",
+			"authpassword" => substr(base64_encode(Utils::getRandomBytes(20, false)), 3, 8) //To use in IRC
 		));
 
 		$this->workers = array();
@@ -114,7 +118,17 @@ class IRCChat implements Plugin{
 				case 2:
 					$len = Utils::readShort(substr($this->thread->msg, 0, 2));
 					$owner = substr($this->thread->msg, 2, $len);
-					$m = preg_replace('/\x1b\[[0-9;]*m/', "", $this->api->console->run(substr($this->thread->msg, 2 + $len), ":$owner"));
+					$cmd = explode(" ", substr($this->thread->msg, 2 + $len));
+					if(strtolower($cmd[0]) === "pass"){
+						array_shift($cmd);
+						$pass = array_shift($cmd);
+						if($pass != $this->config->get("authpassword")){
+							break;
+						}
+						$m = preg_replace('/\x1b\[[0-9;]*m/', "", $this->api->console->run(implode(" ", $cmd), "console"));
+					}else{
+						$m = preg_replace('/\x1b\[[0-9;]*m/', "", $this->api->console->run(implode(" ", $cmd), ":$owner"));
+					}
 					foreach(explode("\n", $m) as $l){
 						if($l != ""){
 							socket_write($this->socket, "PRIVMSG $owner : ".trim($l)."\r\n");
