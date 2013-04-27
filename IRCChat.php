@@ -4,10 +4,10 @@
 __PocketMine Plugin__
 name=IRCChat
 description=Connects to an IRC channel to act as a bridge for the server chat.
-version=0.2
+version=0.3
 author=shoghicp
 class=IRCChat
-apiversion=6
+apiversion=6,7
 */
 
 /*
@@ -20,6 +20,10 @@ Small Changelog
 
 0.2:
 - Added the IRC pass sub-command to run commands as the real Console.
+
+0.3:
+- Removed NOTICE from chat broadcast
+- Added Player join
 
 */
 
@@ -55,6 +59,7 @@ class IRCChat implements Plugin{
 		console("[INFO] IRCChat connected to /$addr:$port");
 		$this->api->schedule(2, array($this, "check"), array(), true);
 		$this->api->addHandler("server.chat", array($this, "sendMessage"));
+		$this->api->event("player.join", array($this, "eventHandler"));
 	}
 	
 	public function commandHandler($cmd, $params, $issuer, $alias){
@@ -86,6 +91,14 @@ class IRCChat implements Plugin{
 				break;
 		}
 		return $output;
+	}
+	
+	public function eventHandler($data, $event){
+		switch($event){
+			case "player.join":
+				socket_write($this->socket, "PRIVMSG ".$this->config->get("channel")." :".$data->username." joined the game\r\n");
+				break;
+		}
 	}
 	
 	public function sendMessage($data, $event){
@@ -226,6 +239,7 @@ class IRCChatClient extends Thread{
 							socket_write($this->socket, "PONG ".$msg."\r\n");
 							break;
 						case "NOTICE":
+							break;
 						case "PRIVMSG":	
 							$from = array_shift($line);
 							$mes = substr($msg, strpos($msg, ":") + 1);
@@ -239,7 +253,6 @@ class IRCChatClient extends Thread{
 							}
 							break;
 						default:
-							//echo "[:$sender $cmd] $msg\r\n";
 							break;
 					}
 					if($this->status === 1){
