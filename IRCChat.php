@@ -7,7 +7,7 @@ description=Connects to an IRC channel to act as a bridge for the server chat.
 version=0.3
 author=shoghicp
 class=IRCChat
-apiversion=6,7,8
+apiversion=6,7,8,9
 */
 
 /*
