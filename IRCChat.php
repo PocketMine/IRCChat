@@ -103,7 +103,17 @@ class IRCChat implements Plugin{
 	
 	public function sendMessage($data, $event){
 		if($data->check("IRCChat") or $data->check("ircchat")){
-			$m = preg_replace('/\x1b\[[0-9;]*m/', "", $data->get());
+			$m = $data->get();
+			if(is_array($m)){
+				$m = preg_replace('/\x1b\[[0-9;]*m/', "", $m["message"]);
+				if($m["player"] instanceof Player){
+					$m  = "<".$message["player"]->username . "> " . $m;
+				}else{
+					$m  = "<".$message["player"] . "> " . $m;
+				}
+			}else{
+				$m = preg_replace('/\x1b\[[0-9;]*m/', "", $m);
+			}
 			socket_write($this->socket, "PRIVMSG ".$this->config->get("channel")." : ".$m."\r\n");
 		}
 	}
