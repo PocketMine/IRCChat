@@ -4,10 +4,10 @@
 __PocketMine Plugin__
 name=IRCChat
 description=Connects to an IRC channel to act as a bridge for the server chat.
-version=0.3
+version=0.4
 author=shoghicp
 class=IRCChat
-apiversion=6,7,8,9,10
+apiversion=6,7,8,9,10,11
 */
 
 /*
@@ -24,6 +24,10 @@ Small Changelog
 0.3:
 - Removed NOTICE from chat broadcast
 - Added Player join
+
+0.4:
+- Channel OPs can now easily ban/mute IRCChat bots
+- PocketMine-MP Alpha_1.3.11dev support
 
 */
 
@@ -196,7 +200,7 @@ class IRCChatClient extends Thread{
 			$connect .= "PASS ".$this->password."\r\n";
 		}
 		$connect .= "NICK ".$this->nickname."\r\n";
-		$connect .= "USER ".$this->nickname." a a :".$this->nickname."\r\n";
+		$connect .= "USER PMIRCChat a a :".$this->nickname." @ PocketMine-MP IRCChat plugin\r\n";
 
 		socket_write($this->socket, $connect);
 		$host = "";
